@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'Widgets/FormCard.dart';
+import 'Widgets/LoginCard.dart';
+import 'Widgets/SignUpCard.dart';
 import 'Widgets/SocialIcons.dart';
 import 'CustomIcons.dart';
 
@@ -16,8 +17,11 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isSelected = false;
+  bool _login = true;
 
-  void toggleRadio() => setState(() => _isSelected = !_isSelected);
+  void toggleLogin() => setState(() => this._login = !_login);
+
+  void toggleRadio() => setState(() => this._isSelected = !_isSelected);
 
   Widget radioButton(bool isSelected) => Container(
         width: 16.0,
@@ -92,8 +96,8 @@ class _MyAppState extends State<MyApp> {
                               fontWeight: FontWeight.bold))
                     ],
                   ),
-                  SizedBox(height: ScreenUtil().setHeight(180)),
-                  FormCard(),
+                  SizedBox(height: ScreenUtil().setHeight(100)),
+                  this._login ? LoginCard() : SignUpCard(),
                   SizedBox(height: ScreenUtil().setHeight(40)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -114,7 +118,7 @@ class _MyAppState extends State<MyApp> {
                       InkWell(
                         child: Container(
                           width: ScreenUtil().setWidth(320),
-                          height: ScreenUtil().setHeight(90),
+                          height: ScreenUtil().setHeight(80),
                           decoration: BoxDecoration(
                               gradient: LinearGradient(colors: [
                                 Color(0xFF17ead9),
@@ -134,7 +138,8 @@ class _MyAppState extends State<MyApp> {
                               child: Center(
                                 child: Material(
                                     color: Colors.transparent,
-                                    child: Text("SIGNIN",
+                                    child: Text(
+                                        this._login ? "SIGNIN" : "SIGNUP",
                                         style: TextStyle(
                                             color: Colors.white,
                                             fontFamily: "Poppins-Bold",
@@ -153,14 +158,14 @@ class _MyAppState extends State<MyApp> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(
-                        "New User? ",
+                        this._login ? "New User? " : "Already Registered? ",
                         style: TextStyle(fontFamily: "Poppins-Medium"),
                       ),
                       InkWell(
-                          onTap: () {},
-                          child: Text("SignUp",
+                          onTap: toggleLogin,
+                          child: Text(this._login ? "SignUp" : "Login",
                               style: TextStyle(
-                                  color: Color(0xFF5d74e3),
+                                  color: Colors.blue,
                                   fontFamily: "Poppins-Bold")))
                     ],
                   )
