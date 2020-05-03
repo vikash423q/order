@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:flutter_screenutil/flutter_screenutil.dart";
 
 import "package:order/Widgets/LoginBottomSheet.dart";
+import "package:order/Widgets/EnterPhoneNumber.dart";
 
 class LoginCard extends StatefulWidget {
   LoginCard({Key key}) : super(key: key);
@@ -54,10 +55,8 @@ class _LoginCardState extends State<LoginCard> {
                 ),
                 FlatButton(
                   padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                  onPressed: () => showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (ctx) => buildLoginBottomSheet(ctx)),
+                  onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (ctx) => EnterPhoneNumber())),
                   splashColor: Colors.blue[200],
                   child: Text(
                     "Login with Phone?",
@@ -113,7 +112,8 @@ class _LoginCardState extends State<LoginCard> {
               children: <Widget>[
                 FlatButton(
                   padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                  onPressed: () {},
+                  onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (ctx) => EnterPhoneNumber())),
                   splashColor: Colors.blue[200],
                   child: Text(
                     "Forget Password?",
