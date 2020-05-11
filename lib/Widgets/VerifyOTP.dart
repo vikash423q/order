@@ -1,20 +1,51 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import "package:flutter/material.dart";
 import 'package:flutter/services.dart';
 import "package:flutter_screenutil/flutter_screenutil.dart";
 import 'package:pin_code_fields/pin_code_fields.dart';
 
-import "package:order/Widgets/ChangePassword.dart";
-
 class VerifyOTP extends StatefulWidget {
-  VerifyOTP({Key key}) : super(key: key);
+  String phone;
+  String verificationId;
+  Function callback;
+  VerifyOTP({Key key, this.phone, this.verificationId, this.callback})
+      : super(key: key);
 
   @override
   _VerifyOTPState createState() => _VerifyOTPState();
 }
 
 class _VerifyOTPState extends State<VerifyOTP> {
+  String _code = '';
+  String _phone;
+  String _verificationId;
+  Function _callback;
+  bool _complete = false;
+
+  @override
+  void initState() {
+    this._phone = widget.phone;
+    this._verificationId = widget.verificationId;
+    this._callback = widget.callback;
+    super.initState();
+  }
+
+  void verifyCode(BuildContext ctx) async {
+    try {
+      final AuthCredential credential = PhoneAuthProvider.getCredential(
+          verificationId: this._verificationId, smsCode: this._code);
+      this._callback(ctx, credential);
+    } catch (error) {
+      //TODO Show Snackbar
+      Scaffold.of(ctx).showSnackBar(SnackBar(
+        content: Text('Error. ${error.code}'),
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    print(this._code);
     var pageHeight = MediaQuery.of(context).size.height;
     return Scaffold(
         body: Column(
@@ -52,7 +83,7 @@ class _VerifyOTPState extends State<VerifyOTP> {
                 padding: EdgeInsets.symmetric(
                     horizontal: ScreenUtil().setWidth(24.0)),
                 child: Text(
-                  "OTP send to 7686885294",
+                  'OTP send to ${widget.phone}',
                   style: TextStyle(
                       color: Colors.black54,
                       fontFamily: "Poppins-Bold",
@@ -79,25 +110,33 @@ class _VerifyOTPState extends State<VerifyOTP> {
               ),
               SizedBox(height: ScreenUtil().setHeight(25.0)),
               PinCodeTextField(
-                length: 4,
-                obsecureText: false,
+                length: 6,
+                obsecureText: true,
+                autoFocus: true,
                 animationType: AnimationType.fade,
                 animationDuration: Duration(milliseconds: 300),
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 textInputType: TextInputType.number,
-                borderRadius: BorderRadius.circular(1.0),
-                fieldHeight: 50,
-                fieldWidth: 40,
-                onChanged: (value) {},
+                onCompleted: (val) {
+                  setState(() {
+                    this._complete = true;
+                  });
+                },
+                onChanged: (value) {
+                  setState(() {
+                    this._code = value;
+                    this._complete = value.length == 6;
+                  });
+                },
               ),
               SizedBox(height: ScreenUtil().setHeight(60.0)),
               ButtonTheme(
                 minWidth: double.infinity,
                 height: ScreenUtil().setHeight(75),
                 child: RaisedButton(
-                  color: Colors.blue,
-                  onPressed: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (ctx) => ChangePassword())),
+                  color: this._complete ? Colors.blue : Colors.blue[200],
+                  onPressed:
+                      this._complete ? () => this.verifyCode(context) : () {},
                   child: Text(
                     'VERIFY',
                     style: TextStyle(
