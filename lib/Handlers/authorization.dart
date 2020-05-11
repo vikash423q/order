@@ -153,3 +153,16 @@ void verifyUserWithOTP(BuildContext context, String phone, Function onSuccess,
     Scaffold.of(context).showSnackBar(SnackBar(content: Text(error.code)));
   }
 }
+
+Future<bool> phoneNumberExists(String phone) async {
+  try {
+    final Firestore _instance = Firestore.instance;
+    QuerySnapshot docs = await _instance
+        .collection('users')
+        .where('phone', isEqualTo: phone)
+        .getDocuments();
+    return docs.documents.length > 0;
+  } on PlatformException catch (err) {
+    return false;
+  }
+}

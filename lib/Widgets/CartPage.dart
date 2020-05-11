@@ -6,10 +6,12 @@ import 'package:order/Bloc/cart_bloc.dart';
 import 'package:order/Models/address.dart';
 import 'package:order/Models/menu_item.dart';
 import 'package:order/Models/order.dart';
+import 'package:order/Models/user.dart';
 import 'package:order/SharedPreferences/utils.dart';
 import 'package:order/Widgets/AddRemoveButton.dart';
 import 'package:order/Widgets/OrderReview.dart';
 import 'package:order/Widgets/ProgressButton.dart';
+import 'package:order/constants.dart';
 import 'package:order/exceptions.dart';
 import 'package:order/Handlers/utils.dart';
 import 'package:order/utils.dart';
@@ -17,8 +19,8 @@ import 'package:the_validator/the_validator.dart';
 
 class CartPage extends StatefulWidget {
   final CartBloc cartBloc;
-  final String userId;
-  CartPage({Key key, this.cartBloc, this.userId}) : super(key: key);
+  final User user;
+  CartPage({Key key, this.cartBloc, this.user}) : super(key: key);
 
   @override
   _CartPageState createState() => _CartPageState();
@@ -29,7 +31,7 @@ class _CartPageState extends State<CartPage> {
   bool _readyForOrder = false;
   final _formKey = GlobalKey<FormState>();
   Address _address = Address();
-  String _userId;
+  User _user;
   String _suggestion;
 
   void _increaseItemCount(MenuItem item) => setState(() {
@@ -53,13 +55,14 @@ class _CartPageState extends State<CartPage> {
       setState(() => this._readyForOrder = !this._readyForOrder);
 
   void _confirmOrder(context) {
-    this._formKey.currentState.validate();
+    bool validated = this._formKey.currentState.validate();
+    if (!validated) return;
     this._formKey.currentState.save();
     Order order = Order.fromMenuItems(this._cartBloc.cartItems,
         address: this._address,
         status: "pending",
         suggestion: this._suggestion,
-        userId: this._userId);
+        userId: this._user.uid);
     print(order.toJson());
     try {
       order.validate();
@@ -84,6 +87,7 @@ class _CartPageState extends State<CartPage> {
           upload('orders', order.toJson()).then((docId) {
             this._cartBloc.cartEventSink.add(CartClearEvent());
             this._toggleReadyForOrder();
+            delegateMail(this._user, order);
             Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -101,7 +105,9 @@ class _CartPageState extends State<CartPage> {
   @override
   void initState() {
     this._cartBloc = widget.cartBloc;
-    this._userId = widget.userId;
+    this._user = widget.user;
+    formattedDateTime(DateTime.now());
+    dateTimefromString(DateTime.now().toString());
     super.initState();
   }
 
@@ -468,6 +474,14 @@ class _CartPageState extends State<CartPage> {
                                   fontWeight: FontWeight.bold,
                                   fontFamily: "Poppins-Bold"),
                             ),
+                            Text(
+                              "*Outside ${Constants().restrictedArea} not allowed",
+                              style: TextStyle(
+                                  color: Colors.orange[400],
+                                  fontSize: ScreenUtil().setSp(18),
+                                  fontWeight: FontWeight.normal,
+                                  fontFamily: "Poppins-Medium"),
+                            ),
                             TextFormField(
                               style: TextStyle(
                                 fontSize: ScreenUtil().setSp(28),
@@ -516,11 +530,15 @@ class _CartPageState extends State<CartPage> {
                                 decoration: InputDecoration(
                                   labelText: 'Pin Code',
                                 ),
-                                validator: (value) =>
-                                    Validator.isNumber(value) &&
-                                            value.length == 6
-                                        ? null
-                                        : "Pin Code should be 6 digit number",
+                                validator: (value) => Validator.isNumber(
+                                            value) &&
+                                        Constants()
+                                                .allowedPinCode
+                                                .indexOf(value) >
+                                            0 &&
+                                        value.length == 6
+                                    ? null
+                                    : "Should be valid 6 digit value and belong inside the restricted area",
                                 maxLines: 1,
                                 onSaved: (val) => this._address.zip = val),
                           ],

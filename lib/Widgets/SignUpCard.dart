@@ -69,8 +69,8 @@ class _SignUpCardState extends State<SignUpCard> {
             this._signUpEmail, this._signUpPassword, credential);
         print(uid);
         if (uid != null) {
-          await put_uid(uid);
           User user = await getUserWithUid(uid);
+          await putUser(user);
           Navigator.of(context).pushNamedAndRemoveUntil(
               '/homepage', (_) => false,
               arguments: user);

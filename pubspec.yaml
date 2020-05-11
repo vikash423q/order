@@ -32,6 +32,16 @@ dependencies:
   shared_preferences: ^0.5.7+1
   url_launcher: ^5.3.0
   badges: ^1.1.1
+  flutter_email_sender: ^3.0.1
+  mailer: ^3.0.4
+  intl: ^0.16.1
+  connectivity: ^0.4.8+5
+  share: ^0.6.4+1
+
+
+
+
+
 
 
 

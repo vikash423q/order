@@ -79,6 +79,14 @@ class Order {
     };
   }
 
+  toString() {
+    String _heading =
+        "Order Id : $uid\nUser Id : $userId\nAddress: ${address.toString()}\nOrder on : $createdOn\n\nOrder Items :";
+    String _orderItems =
+        orderItems.map((e) => e.toString()).toList().join("\n");
+    return "$_heading\n$_orderItems";
+  }
+
   validate() {
     if (userId != null) {
       if (address.validate()) {
@@ -133,6 +141,10 @@ class OrderItem {
       'cost': cost.roundToDouble(),
       'discount': discount.roundToDouble()
     };
+  }
+
+  toString() {
+    return "Item : $name\nQuantity : $quantity\nPrice : $price\nActualPrice : $actualPrice\nCost : $cost\nDiscount : $discount";
   }
 
   OrderItem.fromJson(Map<String, dynamic> map) {

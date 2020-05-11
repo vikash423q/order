@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:order/SharedPreferences/utils.dart';
 import 'package:order/Widgets/HomePage.dart';
-import 'package:order/temp.dart';
+import 'package:order/Widgets/NoConnection.dart';
 
 import 'Widgets/LoginCard.dart';
 import 'Widgets/SignUpCard.dart';
 
 void main() => runApp(MaterialApp(
+      initialRoute: '/homepage',
       onGenerateRoute: (settings) {
         if (settings.name == '/homepage') {
           final args = settings.arguments;
@@ -14,17 +16,27 @@ void main() => runApp(MaterialApp(
             return HomePage(user: args);
           });
         }
+        if (settings.name == '/login') {
+          return MaterialPageRoute(builder: (context) {
+            return LoginPage();
+          });
+        }
+        if (settings.name == '/noconnection') {
+          return MaterialPageRoute(builder: (context) {
+            return NoConnection();
+          });
+        }
+        return null;
       },
-      home: MyApp(),
       debugShowCheckedModeBanner: false,
     ));
 
-class MyApp extends StatefulWidget {
+class LoginPage extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => new _MyAppState();
+  State<StatefulWidget> createState() => new _LoginPageState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _LoginPageState extends State<LoginPage> {
   bool _login = true;
 
   void toggleLogin() => setState(() => this._login = !_login);

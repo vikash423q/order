@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:order/Bloc/cart_bloc.dart';
 import 'package:order/Bloc/menu_bloc.dart';
 import 'package:order/Models/menu_item.dart';
+import 'package:order/constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:order/Widgets/CategoryCard.dart';
@@ -18,7 +19,7 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   final MenuBloc _menuBloc = MenuBloc();
-  String _phone = "+91 7686885294";
+  String _phone = Constants().restaurantContactNo;
   CartBloc _cartBloc;
   bool _onlyVeg = false;
 
@@ -31,7 +32,6 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   List<MenuItem> updateMenuItems(List<MenuItem> items) {
-    print('updating');
     for (var idx = 0; idx < items.length; idx++) {
       for (var jdx = 0; jdx < this._cartBloc.cartItems.length; jdx++) {
         if (items[idx].uid == this._cartBloc.cartItems[jdx].uid) {
@@ -140,14 +140,14 @@ class _MenuPageState extends State<MenuPage> {
                     ),
                     SizedBox(height: ScreenUtil().setHeight(30.0)),
                     Text(
-                      "Mom's Kitchen",
+                      Constants().restaurantName,
                       style: TextStyle(
                           color: Colors.black87,
                           fontFamily: "Poppins-Bold",
                           fontSize: ScreenUtil().setSp(42)),
                     ),
                     Text(
-                      "Lakshmi Layout Road, JP Nagar",
+                      Constants().restaurantAddress,
                       style: TextStyle(
                           color: Colors.black54,
                           fontFamily: "Poppins-Medium",
@@ -156,7 +156,7 @@ class _MenuPageState extends State<MenuPage> {
                     Row(
                       children: <Widget>[
                         Text(
-                          this._phone,
+                          Constants().restaurantContactNo,
                           style: TextStyle(
                               color: Colors.black54,
                               fontFamily: "Poppins-Medium",
@@ -168,7 +168,8 @@ class _MenuPageState extends State<MenuPage> {
                             size: 16,
                             color: Colors.green,
                           ),
-                          onPressed: () => launch("tel://${this._phone}"),
+                          onPressed: () => launch(
+                              "tel://${Constants().restaurantContactNo}"),
                         ),
                       ],
                     ),

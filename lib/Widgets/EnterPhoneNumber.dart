@@ -132,6 +132,19 @@ class _EnterPhoneNumberState extends State<EnterPhoneNumber> {
 
       try {
         final FirebaseAuth _auth = FirebaseAuth.instance;
+
+        if (this._existingUser) {
+          bool exists = await phoneNumberExists(this._phone);
+          if (!exists) {
+            setState(() {
+              this._valid = true;
+              this._inProgress = false;
+              this._statusColor = Colors.red;
+              this._status = "Phone number doesn't exist";
+            });
+            return;
+          }
+        }
         await _auth.verifyPhoneNumber(
             phoneNumber: this._phone,
             timeout: Duration(seconds: this._timeout),

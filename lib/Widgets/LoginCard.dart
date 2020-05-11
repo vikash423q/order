@@ -48,8 +48,8 @@ class _LoginCardState extends State<LoginCard> {
             .showSnackBar(SnackBar(content: Text('Logging in..')));
         String uid = await loginWithEmail(
             context, this._loginEmail, this._loginPassword);
-        await put_uid(uid);
         User user = await getUserWithUid(uid);
+        await putUser(user);
         Navigator.of(context).pushNamedAndRemoveUntil('/homepage', (_) => false,
             arguments: user);
       } else {
@@ -78,8 +78,8 @@ class _LoginCardState extends State<LoginCard> {
     try {
       var user =
           (await FirebaseAuth.instance.signInWithCredential(credential)).user;
-      await put_uid(user.uid);
       User _user = await getUserWithUid(user.uid);
+      await putUser(_user);
       Navigator.of(context)
           .pushNamedAndRemoveUntil('/homepage', (_) => false, arguments: _user);
     } on PlatformException catch (error) {

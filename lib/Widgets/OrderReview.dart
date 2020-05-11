@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:order/Models/order.dart';
+import 'package:order/Handlers/utils.dart';
 
 class OrderReview extends StatefulWidget {
   String orderId;
@@ -142,7 +143,7 @@ class _OrderReviewState extends State<OrderReview> {
                                   SizedBox(
                                       height: ScreenUtil().setHeight(10.0)),
                                   Text(
-                                    "${this._order.createdOn}",
+                                    "${formattedDateTime(this._order.createdOn)}",
                                     style: TextStyle(
                                         color: Colors.black54,
                                         fontFamily: "Poppins-Medium",
