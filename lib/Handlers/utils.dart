@@ -25,7 +25,7 @@ Future<bool> delegateMail(User user, Order order) async {
     ..ccRecipients.addAll(Constants().mailRecipients)
     ..subject = '${user.name} placed an order'
     ..text = 'Order received'
-    ..html = order.toString();
+    ..html = order.toHTML();
 
   try {
     final sendReport = await send(message, smtpServer);

@@ -79,6 +79,10 @@ class Order {
     };
   }
 
+  toHTML() {
+    this.toString().replaceAll("\n", "<br/>");
+  }
+
   toString() {
     String _heading =
         "Order Id : $uid\nUser Id : $userId\nAddress: ${address.toString()}\nOrder on : $createdOn\n\nOrder Items :";
