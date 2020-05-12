@@ -54,6 +54,12 @@ class MenuBloc {
         }
       }
       this.putMenu.add(this._menuItems);
+    } else if (event is MenuOnlyVegItemEvent) {
+      var filtered =
+          this._menuItems.where((element) => !element.nonVeg).toList();
+      this.putMenu.add(filtered);
+    } else if (event is MenuAllItemEvent) {
+      this.putMenu.add(this._menuItems);
     }
   }
 
@@ -75,6 +81,10 @@ class MenuLoadEvent extends MenuEvent {}
 class MenuRefreshEvent extends MenuEvent {}
 
 class MenuNonVegItemResetEvent extends MenuEvent {}
+
+class MenuOnlyVegItemEvent extends MenuEvent {}
+
+class MenuAllItemEvent extends MenuEvent {}
 
 class MenuSyncWithCartEvent extends MenuEvent {
   List<MenuItem> menuItems;

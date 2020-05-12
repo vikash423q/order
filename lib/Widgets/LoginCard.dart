@@ -5,6 +5,7 @@ import "package:flutter_screenutil/flutter_screenutil.dart";
 import 'package:order/Bloc/user_bloc.dart';
 import 'package:order/Models/user.dart';
 import 'package:order/SharedPreferences/utils.dart';
+import 'package:order/Widgets/ProgressButton.dart';
 import 'package:the_validator/the_validator.dart';
 
 import 'package:order/Widgets/EnterPhoneNumber.dart';
@@ -133,7 +134,7 @@ class _LoginCardState extends State<LoginCard> {
                     child: Text(
                       "Login with OTP?",
                       style: TextStyle(
-                          color: Colors.blue,
+                          color: Colors.orange,
                           fontSize: ScreenUtil().setSp(24),
                           fontFamily: "Poppins-Bold",
                           letterSpacing: 0.6),
@@ -182,27 +183,16 @@ class _LoginCardState extends State<LoginCard> {
                 ),
                 onChanged: (val) => this.changeLoginPassword(val),
               ),
-              SizedBox(height: ScreenUtil().setHeight(15)),
+              SizedBox(height: ScreenUtil().setHeight(45)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  FlatButton(
-                    padding:
-                        EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                    onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (ctx) => EnterPhoneNumber())),
-                    splashColor: Colors.blue[200],
-                    child: Text(
-                      "Forgot Password?",
-                      style: TextStyle(
-                          color: Colors.blue,
-                          fontFamily: "Poppins-Bold",
-                          fontSize: ScreenUtil().setSp(24),
-                          letterSpacing: 0.6),
-                    ),
-                  )
+                  // FlatButton(
+                  //     padding:
+                  //         EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                  //     onPressed: () => {},
+                  //     splashColor: Colors.blue[200],
+                  //     child: Container())
                 ],
               ),
               SizedBox(height: ScreenUtil().setHeight(10.0)),
@@ -211,39 +201,43 @@ class _LoginCardState extends State<LoginCard> {
         ),
       ),
       SizedBox(height: ScreenUtil().setHeight(40)),
-      InkWell(
-        child: Container(
-          width: double.infinity,
-          height: ScreenUtil().setHeight(80),
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  colors: [Color(0xFF17ead9), Color(0xFF6078ea)]),
-              borderRadius: BorderRadius.circular(6.0),
-              boxShadow: [
-                BoxShadow(
-                    blurRadius: 8.0,
-                    offset: Offset(0.0, 8.0),
-                    color: Color(0xFF6078ea).withOpacity(.3))
-              ]),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => this._handleLogin(context),
-              child: Center(
-                child: Material(
-                    color: Colors.transparent,
-                    child: Text("LOGIN",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: "Poppins-Bold",
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0))),
-              ),
-            ),
+      ProgressButton(
+        height: ScreenUtil().setHeight(80),
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(0)),
+        linearGradient:
+            LinearGradient(colors: [Colors.orange[400], Colors.orange[500]]),
+        onTap: () => this._handleLogin(context),
+        splashColor: Colors.orange[800],
+        progressColor: Colors.orange[700],
+        inProgress: false,
+        text: Text(
+          "LOGIN",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: ScreenUtil().setSp(32),
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     ]);
   }
 }
+
+// InkWell(
+//               onTap: () => this._handleLogin(context),
+//               child: Center(
+//                 child: Material(
+//                   color: Colors.transparent,
+//                   child: Text(
+//                     "LOGIN",
+//                     style: TextStyle(
+//                         color: Colors.white,
+//                         fontFamily: "Poppins-Bold",
+//                         fontSize: 18,
+//                         fontWeight: FontWeight.bold,
+//                         letterSpacing: 1.0),
+//                   ),
+//                 ),
+//               ),
+//             ),

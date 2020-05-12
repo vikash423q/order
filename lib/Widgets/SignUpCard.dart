@@ -5,6 +5,7 @@ import "package:flutter_screenutil/flutter_screenutil.dart";
 import 'package:order/Bloc/user_bloc.dart';
 import 'package:order/Models/user.dart';
 import 'package:order/Widgets/EnterPhoneNumber.dart';
+import 'package:order/Widgets/ProgressButton.dart';
 import 'package:the_validator/the_validator.dart';
 
 import 'package:order/Handlers/authorization.dart';
@@ -280,36 +281,22 @@ class _SignUpCardState extends State<SignUpCard> {
         ),
       ),
       SizedBox(height: ScreenUtil().setHeight(40)),
-      InkWell(
-        child: Container(
-          width: double.infinity,
-          height: ScreenUtil().setHeight(80),
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  colors: [Color(0xFF17ead9), Color(0xFF6078ea)]),
-              borderRadius: BorderRadius.circular(6.0),
-              boxShadow: [
-                BoxShadow(
-                    blurRadius: 8.0,
-                    offset: Offset(0.0, 8.0),
-                    color: Color(0xFF6078ea).withOpacity(.3))
-              ]),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => this._handleSignUp(context),
-              child: Center(
-                child: Material(
-                    color: Colors.transparent,
-                    child: Text("SIGNUP",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: "Poppins-Bold",
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0))),
-              ),
-            ),
+      ProgressButton(
+        height: ScreenUtil().setHeight(80),
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(0)),
+        linearGradient:
+            LinearGradient(colors: [Colors.orange[400], Colors.orange[500]]),
+        onTap: () => this._handleSignUp(context),
+        splashColor: Colors.orange[800],
+        progressColor: Colors.orange[700],
+        inProgress: false,
+        text: Text(
+          "SIGNUP",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: ScreenUtil().setSp(32),
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),

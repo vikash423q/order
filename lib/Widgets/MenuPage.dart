@@ -5,6 +5,7 @@ import 'package:order/Bloc/menu_bloc.dart';
 import 'package:order/Models/menu_item.dart';
 import 'package:order/constants.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shimmer/shimmer.dart';
 
 import 'package:order/Widgets/CategoryCard.dart';
 import 'package:order/Widgets/Dish.dart';
@@ -55,13 +56,17 @@ class _MenuPageState extends State<MenuPage> {
     super.dispose();
   }
 
-  List<Dish> recommended(List<MenuItem> items) {
+  List<Widget> recommended(List<MenuItem> items) {
+    print(items.length);
+    if (items.length == 0) {
+      return [Dish(loading: true), Dish(loading: true), Dish(loading: true)];
+    }
     var selectedItems;
     if (this._onlyVeg) {
       selectedItems = items
           .where((e) => e.recommended & !e.nonVeg)
           .map((e) => Dish(
-                key: Key(items.indexOf(e).toString()),
+                key: Key(e.uid),
                 updateCart: updateCart,
                 menuItem: e,
                 removeFromCart: this.removeFromCart,
@@ -81,7 +86,7 @@ class _MenuPageState extends State<MenuPage> {
     return selectedItems;
   }
 
-  Widget categories(List<MenuItem> data) {
+  Map<String, dynamic> categories(List<MenuItem> data) {
     Map<String, List<MenuItem>> cats = {};
     for (MenuItem item in data) {
       for (String cat in item.category) {
@@ -91,16 +96,7 @@ class _MenuPageState extends State<MenuPage> {
         cats[cat].add(item);
       }
     }
-    List<Widget> widgets = List<Widget>();
-    cats.forEach((el, _list) {
-      widgets.add(SizedBox(height: ScreenUtil().setHeight(15.0)));
-      widgets.add(Category(
-          categoryName: el,
-          menuitems: _list,
-          updateCart: updateCart,
-          removeFromCart: removeFromCart));
-    });
-    return Column(children: widgets);
+    return cats;
   }
 
   void _toggleVeg(bool val) => setState(() {
@@ -108,6 +104,9 @@ class _MenuPageState extends State<MenuPage> {
         if (val) {
           this._cartBloc.cartEventSink.add(CartNonVegItemReset());
           this._menuBloc.menuEventSink.add(MenuNonVegItemResetEvent());
+          this._menuBloc.menuEventSink.add(MenuOnlyVegItemEvent());
+        } else {
+          this._menuBloc.menuEventSink.add(MenuAllItemEvent());
         }
       });
 
@@ -119,6 +118,7 @@ class _MenuPageState extends State<MenuPage> {
         stream: this._menuBloc.menu,
         builder: (context, AsyncSnapshot<List<MenuItem>> snapshot) {
           List<MenuItem> items = this.updateMenuItems(snapshot.data);
+          print(items.length);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
@@ -206,32 +206,69 @@ class _MenuPageState extends State<MenuPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: ScreenUtil().setHeight(20.0)),
-                    Divider(
-                      height: 5.0,
-                      thickness: 1.0,
-                    ),
-                    SizedBox(height: ScreenUtil().setHeight(40.0)),
-                    Text(
-                      'Recommended',
-                      style: TextStyle(
-                          color: Colors.black87,
-                          fontSize: ScreenUtil().setSp(30),
-                          fontFamily: "Poppins-Bold",
-                          fontWeight: FontWeight.w400),
-                    ),
-                    SizedBox(height: ScreenUtil().setHeight(25.0)),
-                    GridView.count(
-                      shrinkWrap: true,
-                      crossAxisCount: 2,
-                      physics: ScrollPhysics(),
-                      childAspectRatio: 4 / 5,
-                      children: recommended(items),
-                    ),
                   ],
                 ),
               ),
-              categories(items),
+              SizedBox(height: ScreenUtil().setHeight(2)),
+              Builder(builder: (context) {
+                bool isRecommended =
+                    items.fold(false, (prev, item) => prev || item.recommended);
+                return items.length > 0 && !isRecommended
+                    ? Container()
+                    : Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: ScreenUtil().setWidth(25.0),
+                            vertical: ScreenUtil().setHeight(20.0)),
+                        decoration: _boxDecoration(),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            SizedBox(height: ScreenUtil().setHeight(40.0)),
+                            Text(
+                              'Recommended',
+                              style: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: ScreenUtil().setSp(30),
+                                  fontFamily: "Poppins-Bold",
+                                  fontWeight: FontWeight.w400),
+                            ),
+                            SizedBox(height: ScreenUtil().setHeight(25.0)),
+                            GridView.count(
+                              shrinkWrap: true,
+                              crossAxisCount: 2,
+                              physics: ScrollPhysics(),
+                              childAspectRatio: 4 / 5,
+                              children: recommended(items),
+                            ),
+                          ],
+                        ),
+                      );
+              }),
+              Builder(
+                builder: (context) {
+                  Map<String, List<MenuItem>> catMap = categories(items);
+                  List<String> cats = catMap.keys.toList();
+                  return Column(
+                    children: List.generate(
+                      cats.length,
+                      (idx) => Column(
+                        children: <Widget>[
+                          SizedBox(height: ScreenUtil().setHeight(15.0)),
+                          Category(
+                            key: Key(cats[idx]),
+                            categoryName: cats[idx],
+                            menuitems: catMap[cats[idx]],
+                            updateCart: updateCart,
+                            removeFromCart: removeFromCart,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ],
           );
         },

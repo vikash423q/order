@@ -7,6 +7,7 @@ import 'package:order/SharedPreferences/utils.dart';
 import 'package:order/Widgets/OrderReview.dart';
 import 'package:order/constants.dart';
 import 'package:share/share.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:order/Widgets/ProgressButton.dart';
 
 class AccountPage extends StatefulWidget {
@@ -70,7 +71,7 @@ class _AccountPageState extends State<AccountPage> {
             color: Colors.white,
             padding: EdgeInsets.symmetric(
                 horizontal: ScreenUtil().setWidth(30.0),
-                vertical: ScreenUtil().setHeight(40)),
+                vertical: ScreenUtil().setHeight(30)),
             width: double.infinity,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -83,27 +84,38 @@ class _AccountPageState extends State<AccountPage> {
                       fontFamily: "Poppins-Bold",
                       fontSize: ScreenUtil().setSp(28)),
                 ),
-                SizedBox(height: ScreenUtil().setHeight(30)),
-                Divider(),
-                SizedBox(height: ScreenUtil().setHeight(20)),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    highlightColor: Colors.orange[400],
-                    onTap: () {
-                      Share.share(Constants().appShareLink);
-                    },
-                    child: Text(
-                      "Share with friends",
-                      style: TextStyle(
-                          color: Colors.grey[700],
-                          fontFamily: "Poppins-Medium",
-                          fontWeight: FontWeight.w400,
-                          fontSize: ScreenUtil().setSp(24)),
-                    ),
-                  ),
-                ),
               ],
+            ),
+          ),
+          SizedBox(height: ScreenUtil().setHeight(10)),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              highlightColor: Colors.orange[400],
+              onTap: () {
+                Share.share(Constants().appShareLink);
+              },
+              child: Container(
+                color: Colors.white,
+                padding: EdgeInsets.symmetric(
+                    horizontal: ScreenUtil().setWidth(30.0),
+                    vertical: ScreenUtil().setHeight(25)),
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      "SHARE",
+                      style: TextStyle(
+                          color: Colors.grey[600],
+                          fontFamily: "Poppins-Bold",
+                          fontSize: ScreenUtil().setSp(28),
+                          fontWeight: FontWeight.w400),
+                    ),
+                    Icon(Icons.share, color: Colors.grey[600], size: 24),
+                  ],
+                ),
+              ),
             ),
           ),
           SizedBox(height: ScreenUtil().setHeight(75)),
@@ -317,6 +329,34 @@ class _AccountPageState extends State<AccountPage> {
                     color: Colors.grey[800],
                     size: 24,
                   )
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: ScreenUtil().setHeight(40)),
+          InkWell(
+            onTap: () {
+              launch(Constants().developerLink);
+            },
+            child: Center(
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    "DEVELOPER",
+                    style: TextStyle(
+                        fontFamily: "Poppins-Medium",
+                        fontSize: ScreenUtil().setSp(22),
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black12),
+                  ),
+                  Text(
+                    Constants().developerSignature,
+                    style: TextStyle(
+                        fontFamily: "Poppins-Medium",
+                        fontSize: ScreenUtil().setSp(22),
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black12),
+                  ),
                 ],
               ),
             ),

@@ -3,33 +3,37 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:order/SharedPreferences/utils.dart';
 import 'package:order/Widgets/HomePage.dart';
 import 'package:order/Widgets/NoConnection.dart';
-
+import 'package:flutter/services.dart';
 import 'Widgets/LoginCard.dart';
 import 'Widgets/SignUpCard.dart';
 
-void main() => runApp(MaterialApp(
-      initialRoute: '/homepage',
-      onGenerateRoute: (settings) {
-        if (settings.name == '/homepage') {
-          final args = settings.arguments;
-          return MaterialPageRoute(builder: (context) {
-            return HomePage(user: args);
-          });
-        }
-        if (settings.name == '/login') {
-          return MaterialPageRoute(builder: (context) {
-            return LoginPage();
-          });
-        }
-        if (settings.name == '/noconnection') {
-          return MaterialPageRoute(builder: (context) {
-            return NoConnection();
-          });
-        }
-        return null;
-      },
-      debugShowCheckedModeBanner: false,
-    ));
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((value) => runApp(MaterialApp(
+            initialRoute: '/homepage',
+            onGenerateRoute: (settings) {
+              if (settings.name == '/homepage') {
+                final args = settings.arguments;
+                return MaterialPageRoute(builder: (context) {
+                  return HomePage(user: args);
+                });
+              }
+              if (settings.name == '/login') {
+                return MaterialPageRoute(builder: (context) {
+                  return LoginPage();
+                });
+              }
+              if (settings.name == '/noconnection') {
+                return MaterialPageRoute(builder: (context) {
+                  return NoConnection();
+                });
+              }
+              return null;
+            },
+            debugShowCheckedModeBanner: false,
+          )));
+}
 
 class LoginPage extends StatefulWidget {
   @override
@@ -50,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     ScreenUtil.init(context, width: 750, height: 1334, allowFontScaling: true);
     return new Scaffold(
-      backgroundColor: Colors.orange[200].withOpacity(0.8),
+      backgroundColor: Colors.grey[200],
       resizeToAvoidBottomPadding: true,
       body: Builder(
         builder: (context) => Stack(
@@ -61,9 +65,18 @@ class _LoginPageState extends State<LoginPage> {
               children: <Widget>[
                 Padding(
                   padding: EdgeInsets.only(top: 28.0),
-                  child: Image.asset(
-                    "assets/deliver.png",
-                    width: ScreenUtil().setWidth(360),
+                  child: Stack(
+                    children: <Widget>[
+                      Image.asset(
+                        "assets/food-delivery.png",
+                        width: ScreenUtil().setWidth(360),
+                      ),
+                      Container(
+                        width: ScreenUtil().setWidth(360),
+                        height: ScreenUtil().setHeight(240),
+                        color: Color.fromARGB(20, 0, 0, 0),
+                      )
+                    ],
                   ),
                 ),
                 Expanded(
@@ -82,15 +95,15 @@ class _LoginPageState extends State<LoginPage> {
                     Row(
                       children: <Widget>[
                         Image.asset(
-                          "assets/logo.png",
-                          width: ScreenUtil().setWidth(110),
-                          height: ScreenUtil().setHeight(110),
+                          "assets/order-logo.png",
+                          width: ScreenUtil().setWidth(75),
+                          height: ScreenUtil().setHeight(75),
                         ),
-                        Text("Order",
+                        SizedBox(width: ScreenUtil().setWidth(20)),
+                        Text("FOOD ORDER",
                             style: TextStyle(
                                 fontFamily: "Poppins-Bold",
-                                fontSize: ScreenUtil().setSp(46),
-                                letterSpacing: 0.6,
+                                fontSize: ScreenUtil().setSp(38),
                                 fontWeight: FontWeight.bold))
                       ],
                     ),

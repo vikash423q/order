@@ -34,4 +34,13 @@ class User {
       "phoneVerified": this.phoneVerified
     };
   }
+
+  String toHTML() {
+    return this.toString().replaceAll(new RegExp(r'\n'), "<br>");
+  }
+
+  @override
+  String toString() {
+    return "Customer ID : $uid\nCustomer Name: $name \nCustomer Email: $email\nCustomer Phone: $phone\n\n";
+  }
 }

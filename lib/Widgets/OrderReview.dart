@@ -111,6 +111,8 @@ class _OrderReviewState extends State<OrderReview> {
                         ],
                       ),
                     ),
+                    SizedBox(height: ScreenUtil().setHeight(10)),
+                    Divider(),
                     this._loading
                         ? SizedBox()
                         : Column(

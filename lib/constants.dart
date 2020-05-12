@@ -13,13 +13,17 @@ class Constants {
   final String appShareLink = "http://vikashgaurav.com/download/orderapp";
   final String restrictedArea = "Patna Saheb";
   final List<String> allowedPinCode = [
+    "800008",
+    "800009",
     "800005",
     "800006",
     "800007",
-    "800008",
-    "800009",
     "800010",
     "800011",
-    "800012"
+    "800012",
+    "800013"
   ];
+
+  final String developerSignature = "Vikash Kumar Gaurav";
+  final String developerLink = "http://vikashgaurav.com/";
 }

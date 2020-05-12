@@ -11,6 +11,7 @@ import 'package:order/SharedPreferences/utils.dart';
 import 'package:order/Widgets/AddRemoveButton.dart';
 import 'package:order/Widgets/OrderReview.dart';
 import 'package:order/Widgets/ProgressButton.dart';
+import 'package:order/Widgets/ProgressIndicatorButton.dart';
 import 'package:order/constants.dart';
 import 'package:order/exceptions.dart';
 import 'package:order/Handlers/utils.dart';
@@ -29,6 +30,7 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   CartBloc _cartBloc;
   bool _readyForOrder = false;
+  bool _shouldShowProgress = false;
   final _formKey = GlobalKey<FormState>();
   Address _address = Address();
   User _user;
@@ -56,14 +58,22 @@ class _CartPageState extends State<CartPage> {
 
   void _confirmOrder(context) {
     bool validated = this._formKey.currentState.validate();
-    if (!validated) return;
+    if (!validated) {
+      setState(() {
+        this._shouldShowProgress = false;
+      });
+      return;
+    } else {
+      setState(() {
+        this._shouldShowProgress = true;
+      });
+    }
     this._formKey.currentState.save();
     Order order = Order.fromMenuItems(this._cartBloc.cartItems,
         address: this._address,
-        status: "pending",
+        status: "PENDING",
         suggestion: this._suggestion,
         userId: this._user.uid);
-    print(order.toJson());
     try {
       order.validate();
       verifyOrderWithServer(order.orderItems).then((updatedItems) {
@@ -81,12 +91,14 @@ class _CartPageState extends State<CartPage> {
           ));
           setState(() {
             this._readyForOrder = false;
+            this._shouldShowProgress = false;
           });
         } else {
           // proceed to place order.
           upload('orders', order.toJson()).then((docId) {
             this._cartBloc.cartEventSink.add(CartClearEvent());
             this._toggleReadyForOrder();
+            order.uid = docId;
             delegateMail(this._user, order);
             Navigator.push(
                 context,
@@ -99,6 +111,9 @@ class _CartPageState extends State<CartPage> {
       Scaffold.of(context).showSnackBar(SnackBar(
         content: Text(err.message),
       ));
+      setState(() {
+        this._shouldShowProgress = false;
+      });
     }
   }
 
@@ -133,8 +148,19 @@ class _CartPageState extends State<CartPage> {
         this._calcTaxes(items);
   }
 
+  void rebuildAllChildren(BuildContext context) {
+    void rebuild(Element el) {
+      el.markNeedsBuild();
+      el.visitChildren(rebuild);
+    }
+
+    (context as Element).visitChildren(rebuild);
+  }
+
   @override
   Widget build(BuildContext context) {
+    print('should Progress');
+    print(_shouldShowProgress);
     return SingleChildScrollView(
       child: Column(
         children: <Widget>[
@@ -521,6 +547,7 @@ class _CartPageState extends State<CartPage> {
                                 maxLines: 1,
                                 onSaved: (val) => this._address.area = val),
                             TextFormField(
+                                initialValue: Constants().allowedPinCode[0],
                                 style: TextStyle(
                                   fontSize: ScreenUtil().setSp(28),
                                   fontWeight: FontWeight.w400,
@@ -534,7 +561,7 @@ class _CartPageState extends State<CartPage> {
                                             value) &&
                                         Constants()
                                                 .allowedPinCode
-                                                .indexOf(value) >
+                                                .indexOf(value) >=
                                             0 &&
                                         value.length == 6
                                     ? null
@@ -583,24 +610,31 @@ class _CartPageState extends State<CartPage> {
                         ),
                       ),
                       SizedBox(height: ScreenUtil().setHeight(40)),
-                      ProgressButton(
-                        height: ScreenUtil().setHeight(75),
-                        width: double.infinity,
-                        margin: EdgeInsets.symmetric(
-                            horizontal: ScreenUtil().setWidth(24)),
-                        linearGradient: LinearGradient(
-                            colors: [Colors.orange[400], Colors.orange[600]]),
-                        onTap: () => this._confirmOrder(context),
-                        splashColor: Colors.orange[800],
-                        text: Text(
-                          "CONFIRM",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: ScreenUtil().setSp(32),
-                            fontWeight: FontWeight.bold,
+                      Builder(builder: (context) {
+                        rebuildAllChildren(context);
+                        return ProgressButton(
+                          height: ScreenUtil().setHeight(75),
+                          width: double.infinity,
+                          margin: EdgeInsets.symmetric(
+                              horizontal: ScreenUtil().setWidth(24)),
+                          linearGradient: LinearGradient(
+                              colors: [Colors.orange[400], Colors.orange[500]]),
+                          onTap: () => this._shouldShowProgress
+                              ? null
+                              : this._confirmOrder(context),
+                          splashColor: Colors.orange[800],
+                          progressColor: Colors.orange[700],
+                          inProgress: this._shouldShowProgress,
+                          text: Text(
+                            "CONFIRM",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: ScreenUtil().setSp(32),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                     ],
                   ),
                 )
@@ -613,9 +647,11 @@ class _CartPageState extends State<CartPage> {
                   margin: EdgeInsets.symmetric(
                       horizontal: ScreenUtil().setWidth(24)),
                   linearGradient: LinearGradient(
-                      colors: [Colors.orange[400], Colors.orange[600]]),
+                      colors: [Colors.orange[400], Colors.orange[500]]),
                   onTap: this._toggleReadyForOrder,
                   splashColor: Colors.orange[800],
+                  progressColor: Colors.orange[700],
+                  inProgress: this._readyForOrder,
                   text: Text(
                     "CONTINUE",
                     style: TextStyle(

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:order/Handlers/utils.dart';
 import 'package:order/Models/address.dart';
 import 'package:order/Models/menu_item.dart';
 import 'package:the_validator/the_validator.dart';
@@ -79,13 +80,13 @@ class Order {
     };
   }
 
-  toHTML() {
-    this.toString().replaceAll("\n", "<br/>");
+  String toHTML() {
+    return this.toString().replaceAll(new RegExp(r'\n'), "<br>");
   }
 
   toString() {
     String _heading =
-        "Order Id : $uid\nUser Id : $userId\nAddress: ${address.toString()}\nOrder on : $createdOn\n\nOrder Items :";
+        "Order Id : $uid\n\nAddress: ${address.toString()}\nOrdered on : ${formattedDateTime(createdOn)}\n\nOrder Items :";
     String _orderItems =
         orderItems.map((e) => e.toString()).toList().join("\n");
     return "$_heading\n$_orderItems";
@@ -148,7 +149,7 @@ class OrderItem {
   }
 
   toString() {
-    return "Item : $name\nQuantity : $quantity\nPrice : $price\nActualPrice : $actualPrice\nCost : $cost\nDiscount : $discount";
+    return "\nItem : $name\nQuantity : $quantity\nPrice : $price\nActualPrice : $actualPrice\nCost : $cost\nDiscount : $discount\n";
   }
 
   OrderItem.fromJson(Map<String, dynamic> map) {
