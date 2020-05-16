@@ -10,6 +10,8 @@ import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:order/Widgets/ProgressButton.dart';
 
+import 'AddressPage.dart';
+
 class AccountPage extends StatefulWidget {
   User user;
   AccountPage({Key key, this.user}) : super(key: key);
@@ -20,7 +22,7 @@ class AccountPage extends StatefulWidget {
 
 class _AccountPageState extends State<AccountPage> {
   User _user;
-  int _limit = 3;
+  int _limit = 0;
   bool _alert = false;
   bool _loading = true;
   bool _all = false;
@@ -44,6 +46,7 @@ class _AccountPageState extends State<AccountPage> {
                 this._limit += 3;
                 this._orders = orders;
               }
+              this._loading = false;
             }));
   }
 
@@ -59,6 +62,7 @@ class _AccountPageState extends State<AccountPage> {
   @override
   void initState() {
     this._user = widget.user;
+    this.increaseLimit();
     super.initState();
   }
 
@@ -68,25 +72,54 @@ class _AccountPageState extends State<AccountPage> {
       child: Column(
         children: <Widget>[
           Container(
-            color: Colors.white,
-            padding: EdgeInsets.symmetric(
-                horizontal: ScreenUtil().setWidth(30.0),
-                vertical: ScreenUtil().setHeight(30)),
             width: double.infinity,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
+            padding: EdgeInsets.symmetric(
+                horizontal: ScreenUtil().setWidth(5.0),
+                vertical: ScreenUtil().setHeight(15.0)),
+            color: Colors.white,
+            child: ExpansionTile(
+                title: Text(
                   "My Account",
                   style: TextStyle(
                       color: Colors.black87,
                       fontFamily: "Poppins-Bold",
                       fontSize: ScreenUtil().setSp(28)),
                 ),
-              ],
-            ),
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.home, size: 24, color: Colors.black54),
+                    title: Text(
+                      'Manage Address',
+                      style: TextStyle(
+                          color: Colors.black54,
+                          fontSize: ScreenUtil().setSp(24),
+                          fontWeight: FontWeight.w600),
+                    ),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (ctx) => AddressPage())),
+                  ),
+                ]),
           ),
+          // Container(
+          //   color: Colors.white,
+          //   padding: EdgeInsets.symmetric(
+          //       horizontal: ScreenUtil().setWidth(30.0),
+          //       vertical: ScreenUtil().setHeight(30)),
+          //   width: double.infinity,
+          //   child: Column(
+          //     mainAxisAlignment: MainAxisAlignment.start,
+          //     crossAxisAlignment: CrossAxisAlignment.start,
+          //     children: <Widget>[
+          //       Text(
+          //         "My Account",
+          //         style: TextStyle(
+          //             color: Colors.black87,
+          //             fontFamily: "Poppins-Bold",
+          //             fontSize: ScreenUtil().setSp(28)),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           SizedBox(height: ScreenUtil().setHeight(10)),
           Material(
             color: Colors.transparent,
@@ -190,7 +223,11 @@ class _AccountPageState extends State<AccountPage> {
                                     children: <Widget>[
                                       Text(
                                         "₹ " +
-                                            this._orders[idx].total.toString(),
+                                            this
+                                                ._orders[idx]
+                                                .bill
+                                                .toPay
+                                                .toString(),
                                         style: TextStyle(
                                           fontSize: ScreenUtil().setSp(24),
                                           fontWeight: FontWeight.w400,

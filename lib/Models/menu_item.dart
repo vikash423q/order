@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:order/Models/time_period.dart';
 
 class MenuItem {
   String key;
@@ -13,6 +14,7 @@ class MenuItem {
   bool nonVeg;
   bool recommended;
   int numOfItem = 0;
+  DayPeriod availabilityPeriod;
 
   MenuItem(
       {this.uid,
@@ -24,7 +26,8 @@ class MenuItem {
       this.imageUrl,
       this.available,
       this.nonVeg,
-      this.recommended});
+      this.recommended,
+      this.availabilityPeriod});
 
   MenuItem.fromSnapshot(DocumentSnapshot snapshot) {
     print('loading menuItem from snapshot');
@@ -39,10 +42,37 @@ class MenuItem {
     this.available = snapshot.data['available'];
     this.nonVeg = snapshot.data['nonVeg'];
     this.recommended = snapshot.data['recommended'];
+    if (snapshot.data['availabilityPeriod'] != null) {
+      this.availabilityPeriod =
+          DayPeriod.fromJson(snapshot.data['availabilityPeriod']);
+    } else {
+      this.availabilityPeriod = DayPeriod.fromEmpty();
+    }
   }
 
-  toJson() {
+  MenuItem.fromJson(json) {
+    print('loading menuItem from json');
+    this.uid = json['uid'];
+    this.key = this.uid;
+    this.name = json['name'];
+    this.cuisine = json['cuisine'];
+    this.category = List<String>.from(json['category']);
+    this.actualPrice = json['actualPrice'].toInt();
+    this.offeredPrice = json['offeredPrice'].toInt();
+    this.imageUrl = json['imageUrl'];
+    this.available = json['available'];
+    this.nonVeg = json['nonVeg'];
+    this.recommended = json['recommended'];
+    if (json['availabilityPeriod'] != null) {
+      this.availabilityPeriod = DayPeriod.fromJson(json['availabilityPeriod']);
+    } else {
+      this.availabilityPeriod = DayPeriod.fromEmpty();
+    }
+  }
+
+  Map<String, dynamic> toJson() {
     return {
+      'uid': this.uid,
       'name': this.name,
       'cuisine': this.cuisine,
       'category': this.category,
@@ -51,7 +81,9 @@ class MenuItem {
       'imageUrl': this.imageUrl,
       'available': this.available,
       'nonVeg': this.nonVeg,
-      'recommended': this.recommended
+      'recommended': this.recommended,
+      'quantity': this.numOfItem,
+      'availabilityPeriod': this.availabilityPeriod.toJson()
     };
   }
 }

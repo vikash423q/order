@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:order/Handlers/utils.dart';
 import 'package:order/Models/address.dart';
+import 'package:order/Models/bill.dart';
 import 'package:order/Models/menu_item.dart';
 import 'package:the_validator/the_validator.dart';
 import 'package:order/exceptions.dart';
@@ -13,15 +14,13 @@ class Order {
   List<OrderItem> orderItems;
   String suggestion;
   String status; // confirmed, cancelled, pending
-  double total;
-  double delivery;
-  double tax;
+  Bill bill;
   DateTime createdOn;
 
   Order({this.address, this.orderItems});
 
   Order.fromMenuItems(List<MenuItem> menuList,
-      {this.address, this.userId, this.status, this.suggestion}) {
+      {this.address, this.userId, this.status, this.suggestion, this.bill}) {
     if (menuList.length < 1) {
       throw Exception("Menu List can't be empty");
     }
@@ -40,12 +39,6 @@ class Order {
           cost: _cost,
           discount: _discount);
     }).toList();
-    double _itemsTotal = this
-        .orderItems
-        .fold(0.0, (previousValue, element) => previousValue + element.cost);
-    this.delivery = deliveryCharge();
-    this.tax = taxAmount(_itemsTotal);
-    this.total = _itemsTotal + this.delivery + this.tax;
     this.createdOn = DateTime.now();
   }
 
@@ -59,13 +52,11 @@ class Order {
             .toList();
     this.suggestion = snapshot.data["suggestion"];
     this.status = snapshot.data["status"];
-    this.total = snapshot.data["total"];
-    this.delivery = snapshot.data["delivery"];
-    this.tax = snapshot.data["tax"];
     this.createdOn = DateTime.parse(snapshot.data["createdOn"]);
+    this.bill = Bill.fromJson(snapshot.data['bill']);
   }
 
-  toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'uid': uid,
       'userId': userId,
@@ -73,9 +64,7 @@ class Order {
       'orderItems': orderItems.map((e) => e.toJson()).toList(),
       'suggestion': suggestion,
       "status": status,
-      'total': total,
-      'delivery': delivery,
-      'tax': tax,
+      "bill": bill.toJson(),
       'createdOn': createdOn.toString()
     };
   }
@@ -86,10 +75,16 @@ class Order {
 
   toString() {
     String _heading =
-        "Order Id : $uid\n\nAddress: ${address.toString()}\nOrdered on : ${formattedDateTime(createdOn)}\n\nOrder Items :";
+        "\nAddress: ${address.toString()}\nOrdered on : ${formattedDateTime(createdOn)}\nSuggestion : $suggestion\n\nOrder Items :";
     String _orderItems =
         orderItems.map((e) => e.toString()).toList().join("\n");
-    return "$_heading\n$_orderItems";
+    String _discounts = bill.discounts
+        .map((e) => "\n${e['name']}\t${e['value']}")
+        .toList()
+        .join("\n");
+    String _bill =
+        "\nTotal : ${bill.total}\nDiscount : $_discounts\nDelivery : ${bill.delivery}\nTax : ${bill.tax}\nTo Pay : ${bill.toPay}";
+    return "$_heading\n$_orderItems\n$_bill";
   }
 
   validate() {
@@ -99,12 +94,12 @@ class Order {
           orderItems.forEach((element) {
             element.validate();
           });
-          if (total > 0) {
+          if (bill.total > 0 && bill.toPay > 0) {
             if (Validator.isRequired(status)) {
             } else
               throw ValidationException("Status is required");
           } else
-            throw ValidationException("Total can't be 0");
+            throw ValidationException("Total and ToPay can't be 0");
         } else
           throw ValidationException("Order Items can't be 0");
       } else
@@ -122,8 +117,8 @@ class OrderItem {
   int price;
   bool nonVeg;
   int actualPrice;
-  double cost;
-  double discount;
+  num cost;
+  num discount;
 
   OrderItem(
       {this.uid,

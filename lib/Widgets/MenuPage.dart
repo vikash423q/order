@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:order/Bloc/cart_bloc.dart';
 import 'package:order/Bloc/menu_bloc.dart';
 import 'package:order/Models/menu_item.dart';
+import 'package:order/Models/restaurant_data.dart';
+import 'package:order/Services/orderService.dart';
 import 'package:order/constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
@@ -23,6 +25,7 @@ class _MenuPageState extends State<MenuPage> {
   String _phone = Constants().restaurantContactNo;
   CartBloc _cartBloc;
   bool _onlyVeg = false;
+  RestaurantData _restaurantData;
 
   void updateCart(MenuItem item) {
     this._cartBloc.cartEventSink.add(CartItemAddedEvent(item));
@@ -47,6 +50,8 @@ class _MenuPageState extends State<MenuPage> {
   void initState() {
     this._cartBloc = widget.cartBloc;
     this._menuBloc.menuEventSink.add(MenuRefreshEvent());
+    getRestaurantDetail()
+        .then((detail) => setState(() => this._restaurantData = detail));
     super.initState();
   }
 
@@ -173,7 +178,45 @@ class _MenuPageState extends State<MenuPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: ScreenUtil().setHeight(40.0)),
+                    SizedBox(height: ScreenUtil().setHeight(20.0)),
+                    this._restaurantData != null && !this._restaurantData.open
+                        ? Center(
+                            child: Column(
+                              children: <Widget>[
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 5.0, horizontal: 5.0),
+                                  height: ScreenUtil().setHeight(40.0),
+                                  width: ScreenUtil().setWidth(150),
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                    color: Colors.orange[400],
+                                  )),
+                                  child: Center(
+                                    child: Text(
+                                      'CLOSED',
+                                      style: TextStyle(
+                                          color: Colors.red[300],
+                                          fontFamily: "Poppins-Bold",
+                                          fontSize: ScreenUtil().setSp(18),
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: ScreenUtil().setHeight(10)),
+                                Text(
+                                  "OPEN  ${_restaurantData.openPeriod.toJson()['start']} - ${_restaurantData.openPeriod.toJson()['end']}",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: ScreenUtil().setSp(16),
+                                      color: Colors.black54),
+                                ),
+                                SizedBox(height: ScreenUtil().setHeight(5)),
+                              ],
+                            ),
+                          )
+                        : SizedBox(height: ScreenUtil().setHeight(20.0)),
+                    SizedBox(height: ScreenUtil().setHeight(15.0)),
                   ],
                 ),
               ),

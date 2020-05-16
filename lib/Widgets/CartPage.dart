@@ -1,14 +1,21 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import "package:flutter/material.dart";
 import "package:flutter_screenutil/flutter_screenutil.dart";
 
 import 'package:order/Bloc/cart_bloc.dart';
+import 'package:order/Handlers/authorization.dart';
 import 'package:order/Models/address.dart';
+import 'package:order/Models/bill.dart';
 import 'package:order/Models/menu_item.dart';
 import 'package:order/Models/order.dart';
 import 'package:order/Models/user.dart';
+import 'package:order/Services/orderService.dart';
 import 'package:order/SharedPreferences/utils.dart';
 import 'package:order/Widgets/AddRemoveButton.dart';
+import 'package:order/Widgets/AddressPage.dart';
+import 'package:order/Widgets/BillCard.dart';
 import 'package:order/Widgets/OrderReview.dart';
 import 'package:order/Widgets/ProgressButton.dart';
 import 'package:order/Widgets/ProgressIndicatorButton.dart';
@@ -35,78 +42,134 @@ class _CartPageState extends State<CartPage> {
   Address _address = Address();
   User _user;
   String _suggestion;
+  bool _loadingAddress = false;
+  List<Address> addresses = [];
+  int idxSelected = 0;
+  Bill _bill = Bill.fromEmpty();
+  bool _billLoading = true;
 
   void _increaseItemCount(MenuItem item) => setState(() {
-        print('in increase Item Count');
         this._readyForOrder = false;
-        this
-            ._cartBloc
-            .cartEventSink
-            .add(CartItemAddedEvent(item, fromCart: true));
+        this._cartBloc.cartEventSink.add(
+            CartItemAddedEvent(item, fromCart: true, callback: updateBill));
       });
   void _decreaseItemCount(MenuItem item) => setState(() {
-        print('in Decrease item count');
         this._readyForOrder = false;
-        this
-            ._cartBloc
-            .cartEventSink
-            .add(CartItemRemovedEvent(item, fromCart: true));
+        this._cartBloc.cartEventSink.add(
+            CartItemRemovedEvent(item, fromCart: true, callback: updateBill));
       });
 
-  void _toggleReadyForOrder() =>
+  void _toggleReadyForOrder() {
+    // if (isUserVerified(_user)) {}
+    if (!this._billLoading)
       setState(() => this._readyForOrder = !this._readyForOrder);
+  }
 
-  void _confirmOrder(context) {
-    bool validated = this._formKey.currentState.validate();
-    if (!validated) {
-      setState(() {
-        this._shouldShowProgress = false;
-      });
+  void updateBill() async {
+    if (this._cartBloc.cartItems.length == 0) {
       return;
-    } else {
+    }
+    setState(() {
+      this._billLoading = true;
+    });
+    Bill bill = await generateBillService(this._user.uid,
+        this._cartBloc.cartItems.map((e) => e.toJson()).toList());
+    if (this.mounted) {
       setState(() {
-        this._shouldShowProgress = true;
+        print("updating bill");
+        this._bill = bill;
+        this._billLoading = false;
       });
     }
-    this._formKey.currentState.save();
+  }
+
+  void fetchAddress() async {
+    if (this._billLoading) return;
+    read_uid().then((id) {
+      setState(() {
+        this._loadingAddress = true;
+        this._readyForOrder = false;
+        this._shouldShowProgress = false;
+      });
+      getUserWithUid(id).then(
+        (user) => setState(() {
+          this.addresses = user.address;
+          this._loadingAddress = false;
+          this._readyForOrder = true;
+          this.addresses.forEach((element) {
+            if (element.isDefault)
+              this.idxSelected = this.addresses.indexOf(element);
+          });
+        }),
+      );
+    });
+  }
+
+  void selectAddress(int idx) {
+    setState(() {
+      this.idxSelected = idx;
+    });
+  }
+
+  void _confirmOrder(context) {
     Order order = Order.fromMenuItems(this._cartBloc.cartItems,
-        address: this._address,
+        address: this.addresses[idxSelected],
+        bill: this._bill,
         status: "PENDING",
         suggestion: this._suggestion,
         userId: this._user.uid);
+
+    print(order.toString());
     try {
       order.validate();
-      verifyOrderWithServer(order.orderItems).then((updatedItems) {
-        if (updatedItems.length > 0) {
-          // update cart with updated Items
-          var updatedCartList = updateCartListWithUpdatedMenuItems(
-              updatedItems, this._cartBloc.cartItems);
-          this
-              ._cartBloc
-              .cartEventSink
-              .add(CartListUpdatedEvent(updatedCartList));
-
-          Scaffold.of(context).showSnackBar(SnackBar(
-            content: Text("Cart items updated. Removed if not available"),
-          ));
-          setState(() {
-            this._readyForOrder = false;
-            this._shouldShowProgress = false;
-          });
+      setState(() {
+        this._shouldShowProgress = true;
+      });
+      placeOrderService(order).then((value) {
+        print(value);
+        if (value['status'] == "ok") {
+          this._cartBloc.cartEventSink.add(CartClearEvent());
+          this._toggleReadyForOrder();
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (ctx) => OrderReview(orderId: value['data'])));
         } else {
-          // proceed to place order.
-          upload('orders', order.toJson()).then((docId) {
-            this._cartBloc.cartEventSink.add(CartClearEvent());
-            this._toggleReadyForOrder();
-            order.uid = docId;
-            delegateMail(this._user, order);
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (ctx) => OrderReview(orderId: docId)));
-          });
+          Scaffold.of(context)
+              .showSnackBar(SnackBar(content: Text(value['data'])));
         }
       });
+      // verifyOrderWithServer(order.orderItems).then((updatedItems) {
+      //   if (updatedItems.length > 0) {
+      //     // update cart with updated Items
+      //     var updatedCartList = updateCartListWithUpdatedMenuItems(
+      //         updatedItems, this._cartBloc.cartItems);
+      //     this
+      //         ._cartBloc
+      //         .cartEventSink
+      //         .add(CartListUpdatedEvent(updatedCartList));
+
+      //     Scaffold.of(context).showSnackBar(SnackBar(
+      //       content: Text("Cart items updated. Removed if not available"),
+      //     ));
+      //     setState(() {
+      //       this._readyForOrder = false;
+      //       this._shouldShowProgress = false;
+      //     });
+      //   } else {
+      //     // proceed to place order.
+      //     upload('orders', order.toJson()).then((docId) {
+      //       this._cartBloc.cartEventSink.add(CartClearEvent());
+      //       this._toggleReadyForOrder();
+      //       order.uid = docId;
+      //       delegateMail(this._user, order);
+      //       Navigator.push(
+      //           context,
+      //           MaterialPageRoute(
+      //               builder: (ctx) => OrderReview(orderId: docId)));
+      //     });
+      //   }
+      // });
     } on ValidationException catch (err) {
       Scaffold.of(context).showSnackBar(SnackBar(
         content: Text(err.message),
@@ -121,9 +184,19 @@ class _CartPageState extends State<CartPage> {
   void initState() {
     this._cartBloc = widget.cartBloc;
     this._user = widget.user;
-    formattedDateTime(DateTime.now());
-    dateTimefromString(DateTime.now().toString());
+    updateBill();
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(CartPage oldWidget) {
+    print('widget updated');
+    print(oldWidget.cartBloc.cartItems);
+    print(widget.cartBloc.cartItems);
+    if (oldWidget.cartBloc.cartItems != widget.cartBloc.cartItems) {
+      updateBill();
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   double _calcTotal(List<MenuItem> items) {
@@ -355,219 +428,203 @@ class _CartPageState extends State<CartPage> {
                 ),
           SizedBox(height: ScreenUtil().setHeight(20)),
           this._cartBloc.cartItems.length > 0
-              ? Container(
-                  width: double.infinity,
-                  color: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                      horizontal: ScreenUtil().setWidth(25.0),
-                      vertical: ScreenUtil().setHeight(20)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        'Bill Details',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontFamily: "Poppins-Bold",
-                          fontWeight: FontWeight.w500,
-                          fontSize: ScreenUtil().setSp(28),
-                        ),
-                      ),
-                      SizedBox(height: ScreenUtil().setHeight(20)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            'Item Total',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontFamily: "Poppins-Medium",
-                              fontWeight: FontWeight.w400,
-                              fontSize: ScreenUtil().setSp(24),
-                            ),
-                          ),
-                          Text(
-                            '₹${this._calcTotal(this._cartBloc.cartItems)}',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
-                              fontSize: ScreenUtil().setSp(24),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: ScreenUtil().setHeight(20)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            'Delivery Fee',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontFamily: "Poppins-Medium",
-                              fontWeight: FontWeight.w400,
-                              fontSize: ScreenUtil().setSp(24),
-                            ),
-                          ),
-                          Text(
-                            '₹${this._calcDeliveryCharge(this._cartBloc.cartItems)}',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
-                              fontSize: ScreenUtil().setSp(24),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: ScreenUtil().setHeight(20)),
-                      Divider(height: ScreenUtil().setHeight(2.0)),
-                      SizedBox(height: ScreenUtil().setHeight(20)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            'Taxes and Charges (18%)',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontFamily: "Poppins-Medium",
-                              fontWeight: FontWeight.w400,
-                              fontSize: ScreenUtil().setSp(24),
-                            ),
-                          ),
-                          Text(
-                            '₹${this._calcTaxes(this._cartBloc.cartItems)}',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
-                              fontSize: ScreenUtil().setSp(24),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: ScreenUtil().setHeight(20)),
-                      Divider(height: ScreenUtil().setHeight(2.0)),
-                      SizedBox(height: ScreenUtil().setHeight(20)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            'To Pay',
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontFamily: "Poppins-Bold",
-                              fontWeight: FontWeight.w400,
-                              fontSize: ScreenUtil().setSp(26),
-                            ),
-                          ),
-                          Text(
-                            '₹${this._calcToPay(this._cartBloc.cartItems)}',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
-                              fontSize: ScreenUtil().setSp(26),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
+              ? BillCard(bill: this._bill, loading: this._billLoading)
               : SizedBox(),
           SizedBox(height: ScreenUtil().setHeight(20)),
           this._readyForOrder
-              ? Form(
-                  key: _formKey,
+              ? Container(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Container(
                         width: double.infinity,
                         color: Colors.white,
                         padding: EdgeInsets.symmetric(
-                          horizontal: ScreenUtil().setWidth(25.0),
-                          vertical: ScreenUtil().setHeight(20),
-                        ),
+                            horizontal: ScreenUtil().setWidth(20.0),
+                            vertical: ScreenUtil().setHeight(20)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Text(
-                              "Address",
-                              style: TextStyle(
-                                  fontSize: ScreenUtil().setSp(30),
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: "Poppins-Bold"),
-                            ),
-                            Text(
-                              "*Outside ${Constants().restrictedArea} not allowed",
-                              style: TextStyle(
-                                  color: Colors.orange[400],
-                                  fontSize: ScreenUtil().setSp(18),
-                                  fontWeight: FontWeight.normal,
-                                  fontFamily: "Poppins-Medium"),
-                            ),
-                            TextFormField(
-                              style: TextStyle(
-                                fontSize: ScreenUtil().setSp(28),
-                                fontWeight: FontWeight.w400,
-                              ),
-                              decoration: InputDecoration(
-                                labelText: 'House/Flat No',
-                              ),
-                              maxLines: 1,
-                              validator: (value) => Validator.isRequired(value)
-                                  ? null
-                                  : "Required Field",
-                              onSaved: (val) => this._address.houseNumber = val,
-                            ),
-                            TextFormField(
-                                style: TextStyle(
-                                  fontSize: ScreenUtil().setSp(28),
-                                  fontWeight: FontWeight.w400,
+                            Builder(builder: (context) {
+                              var _list = [
+                                ListTile(
+                                  title: Center(
+                                    child: RaisedButton(
+                                      padding: EdgeInsets.zero,
+                                      elevation: 0,
+                                      color: Colors.orange[300],
+                                      onPressed: () async {
+                                        await Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (ctx) =>
+                                                    AddressPage()));
+                                        fetchAddress();
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.zero,
+                                        margin: EdgeInsets.zero,
+                                        width: ScreenUtil().setWidth(150),
+                                        height: ScreenUtil().setHeight(30),
+                                        child: Center(
+                                          child: Text(
+                                            'Add New',
+                                            style: TextStyle(
+                                                fontSize:
+                                                    ScreenUtil().setSp(20),
+                                                fontFamily: "Poppins Medium",
+                                                color: Colors.white),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ];
+                              _list = this.addresses.length > 0 ? _list : [];
+                              _list.addAll(List.generate(
+                                this.addresses.length,
+                                (idx) => ListTile(
+                                  key: Key(idx.toString()),
+                                  enabled: false,
+                                  dense: true,
+                                  title: Text(
+                                    addresses[idx].houseNumber,
+                                    style: TextStyle(
+                                      fontFamily: "Poppins-Medium",
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: ScreenUtil().setSp(22),
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    [addresses[idx].area, addresses[idx].city]
+                                        .join(", "),
+                                    style: TextStyle(
+                                      fontFamily: "Poppins-Medium",
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: ScreenUtil().setSp(20),
+                                    ),
+                                  ),
+                                  trailing: RaisedButton(
+                                    padding: EdgeInsets.zero,
+                                    elevation: 0,
+                                    color: idx == idxSelected
+                                        ? Colors.grey[100]
+                                        : Colors.orange[300],
+                                    onPressed: () {
+                                      selectAddress(idx);
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.zero,
+                                      margin: EdgeInsets.zero,
+                                      width: ScreenUtil().setWidth(150),
+                                      height: ScreenUtil().setHeight(30),
+                                      child: Center(
+                                        child: Text(
+                                          idx == idxSelected
+                                              ? 'Selected'
+                                              : 'Select',
+                                          style: TextStyle(
+                                              fontSize: ScreenUtil().setSp(20),
+                                              fontFamily: "Poppins Medium",
+                                              color: idx == idxSelected
+                                                  ? Colors.grey
+                                                  : Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                decoration: InputDecoration(
-                                  labelText: 'Landmark',
+                              ));
+                              return ExpansionTile(
+                                title: Text(
+                                  "Address",
+                                  style: TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: ScreenUtil().setSp(30),
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: "Poppins-Bold"),
                                 ),
-                                maxLines: 1,
-                                onSaved: (val) => this._address.landmark = val),
-                            TextFormField(
-                                style: TextStyle(
-                                  fontSize: ScreenUtil().setSp(28),
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                decoration: InputDecoration(
-                                  labelText: 'Area',
-                                ),
-                                validator: (value) =>
-                                    Validator.isRequired(value)
-                                        ? null
-                                        : "Required Field",
-                                maxLines: 1,
-                                onSaved: (val) => this._address.area = val),
-                            TextFormField(
-                                initialValue: Constants().allowedPinCode[0],
-                                style: TextStyle(
-                                  fontSize: ScreenUtil().setSp(28),
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                maxLength: 6,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: 'Pin Code',
-                                ),
-                                validator: (value) => Validator.isNumber(
-                                            value) &&
-                                        Constants()
-                                                .allowedPinCode
-                                                .indexOf(value) >=
-                                            0 &&
-                                        value.length == 6
-                                    ? null
-                                    : "Should be valid 6 digit value and belong inside the restricted area",
-                                maxLines: 1,
-                                onSaved: (val) => this._address.zip = val),
+                                children: _list,
+                              );
+                            }),
+                            this.addresses.length > 0
+                                ? ListTile(
+                                    enabled: true,
+                                    dense: true,
+                                    title: Text(
+                                      addresses[idxSelected].houseNumber,
+                                      style: TextStyle(
+                                        fontFamily: "Poppins-Medium",
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: ScreenUtil().setSp(22),
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      [
+                                        addresses[idxSelected].area,
+                                        addresses[idxSelected].city
+                                      ].join(", "),
+                                      style: TextStyle(
+                                        fontFamily: "Poppins-Medium",
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: ScreenUtil().setSp(20),
+                                      ),
+                                    ),
+                                    trailing: RaisedButton(
+                                      padding: EdgeInsets.zero,
+                                      elevation: 0,
+                                      color: Colors.grey[100],
+                                      onPressed: () {},
+                                      child: Container(
+                                        padding: EdgeInsets.zero,
+                                        margin: EdgeInsets.zero,
+                                        width: ScreenUtil().setWidth(150),
+                                        height: ScreenUtil().setHeight(30),
+                                        child: Center(
+                                          child: Text(
+                                            'Selected',
+                                            style: TextStyle(
+                                                fontSize:
+                                                    ScreenUtil().setSp(20),
+                                                fontFamily: "Poppins Medium",
+                                                color: Colors.grey),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : ListTile(
+                                    title: Center(
+                                      child: RaisedButton(
+                                        padding: EdgeInsets.zero,
+                                        elevation: 0,
+                                        color: Colors.orange[300],
+                                        onPressed: () async {
+                                          await Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (ctx) =>
+                                                      AddressPage()));
+                                          fetchAddress();
+                                        },
+                                        child: Container(
+                                          padding: EdgeInsets.zero,
+                                          margin: EdgeInsets.zero,
+                                          width: ScreenUtil().setWidth(150),
+                                          height: ScreenUtil().setHeight(30),
+                                          child: Center(
+                                            child: Text(
+                                              'Add Address',
+                                              style: TextStyle(
+                                                  fontSize:
+                                                      ScreenUtil().setSp(20),
+                                                  fontFamily: "Poppins Medium",
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                           ],
                         ),
                       ),
@@ -610,31 +667,26 @@ class _CartPageState extends State<CartPage> {
                         ),
                       ),
                       SizedBox(height: ScreenUtil().setHeight(40)),
-                      Builder(builder: (context) {
-                        rebuildAllChildren(context);
-                        return ProgressButton(
-                          height: ScreenUtil().setHeight(75),
-                          width: double.infinity,
-                          margin: EdgeInsets.symmetric(
-                              horizontal: ScreenUtil().setWidth(24)),
-                          linearGradient: LinearGradient(
-                              colors: [Colors.orange[400], Colors.orange[500]]),
-                          onTap: () => this._shouldShowProgress
-                              ? null
-                              : this._confirmOrder(context),
-                          splashColor: Colors.orange[800],
-                          progressColor: Colors.orange[700],
-                          inProgress: this._shouldShowProgress,
-                          text: Text(
-                            "CONFIRM",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: ScreenUtil().setSp(32),
-                              fontWeight: FontWeight.bold,
-                            ),
+                      ProgressButton(
+                        height: ScreenUtil().setHeight(75),
+                        width: double.infinity,
+                        margin: EdgeInsets.symmetric(
+                            horizontal: ScreenUtil().setWidth(24)),
+                        linearGradient: LinearGradient(
+                            colors: [Colors.orange[400], Colors.orange[500]]),
+                        onTap: () => this._confirmOrder(context),
+                        splashColor: Colors.orange[800],
+                        progressColor: Colors.orange[700],
+                        showProgress: this._shouldShowProgress,
+                        text: Text(
+                          "CONFIRM",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: ScreenUtil().setSp(32),
+                            fontWeight: FontWeight.bold,
                           ),
-                        );
-                      }),
+                        ),
+                      ),
                     ],
                   ),
                 )
@@ -648,10 +700,10 @@ class _CartPageState extends State<CartPage> {
                       horizontal: ScreenUtil().setWidth(24)),
                   linearGradient: LinearGradient(
                       colors: [Colors.orange[400], Colors.orange[500]]),
-                  onTap: this._toggleReadyForOrder,
+                  onTap: () => this.fetchAddress(),
                   splashColor: Colors.orange[800],
                   progressColor: Colors.orange[700],
-                  inProgress: this._readyForOrder,
+                  showProgress: this._loadingAddress,
                   text: Text(
                     "CONTINUE",
                     style: TextStyle(

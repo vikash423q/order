@@ -8,7 +8,7 @@ class ProgressButton extends StatefulWidget {
   final Text text;
   final LinearGradient linearGradient;
   final Color splashColor;
-  final bool inProgress;
+  final bool showProgress;
   final Color progressColor;
   final Function onTap;
   ProgressButton(
@@ -18,7 +18,7 @@ class ProgressButton extends StatefulWidget {
       this.splashColor,
       this.progressColor,
       this.onTap,
-      this.inProgress,
+      this.showProgress,
       this.width,
       this.margin,
       this.height})
@@ -32,17 +32,24 @@ class _ProgressButtonState extends State<ProgressButton> {
   double _width = 0.0;
   double _finalWidth = ScreenUtil().setWidth(600);
 
-  @override
-  void initState() {
-    print('button progress');
-    print(widget.inProgress);
-    print(_width);
-    if (widget.inProgress) {
+  void handleProgress(ProgressButton oldWidget) {
+    if (!oldWidget.showProgress && widget.showProgress) {
       setState(() {
         this._width = _finalWidth;
       });
     }
-    super.initState();
+    if (!widget.showProgress) {
+      setState(() {
+        this._width = 0.0;
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(ProgressButton oldWidget) {
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => this.handleProgress(oldWidget));
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -65,26 +72,34 @@ class _ProgressButtonState extends State<ProgressButton> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                if (!widget.inProgress) {
-                  widget.onTap();
-                }
+                widget.onTap();
+                // print(widget.showProgress);
+                // if (widget.showProgress) {
+                //   widget.onTap();
+                //   print('setting width as final');
+                //   setState(() {
+                //     this._width = this._finalWidth;
+                //   });
+                // }
               },
               splashColor: this.widget.splashColor,
               child: Stack(
                 children: <Widget>[
                   Row(
                     children: <Widget>[
-                      AnimatedContainer(
-                        decoration: BoxDecoration(
-                          color: widget.progressColor,
-                          borderRadius:
-                              BorderRadius.horizontal(left: Radius.circular(7)),
-                        ),
-                        width: _width,
-                        height: double.infinity,
-                        duration: Duration(seconds: 5),
-                        curve: Curves.fastOutSlowIn,
-                      )
+                      widget.showProgress
+                          ? AnimatedContainer(
+                              decoration: BoxDecoration(
+                                color: widget.progressColor,
+                                borderRadius: BorderRadius.horizontal(
+                                    left: Radius.circular(7)),
+                              ),
+                              width: _width,
+                              height: double.infinity,
+                              duration: Duration(seconds: 5),
+                              curve: Curves.fastOutSlowIn,
+                            )
+                          : Container(),
                     ],
                   ),
                   Center(child: this.widget.text),

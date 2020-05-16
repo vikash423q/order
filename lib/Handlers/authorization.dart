@@ -85,6 +85,7 @@ Future<String> linkPhoneWithUser(
   try {
     AuthCredential emailCredential =
         EmailAuthProvider.getCredential(email: email, password: password);
+
     FirebaseUser user =
         (await FirebaseAuth.instance.signInWithCredential(emailCredential))
             .user;

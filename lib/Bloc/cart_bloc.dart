@@ -34,6 +34,9 @@ class CartBloc {
       }
       if (!alreadyExist) this.cartItems.add(event.menuItem);
       this.putItem.add(this.cartItems);
+      if (event.callback != null) {
+        event.callback();
+      }
     } else if (event is CartItemUpdatedEvent) {
       print('CartItemUpdated Called');
 
@@ -61,6 +64,9 @@ class CartBloc {
         }
       }
       this.putItem.add(this.cartItems);
+      if (event.callback != null) {
+        event.callback();
+      }
     } else if (event is CartClearEvent) {
       this.cartItems = List<MenuItem>();
       this.putItem.add(this.cartItems);
@@ -81,13 +87,15 @@ class CartEvent {}
 class CartItemAddedEvent extends CartEvent {
   MenuItem menuItem;
   bool fromCart;
-  CartItemAddedEvent(this.menuItem, {this.fromCart = false});
+  Function callback;
+  CartItemAddedEvent(this.menuItem, {this.fromCart = false, this.callback});
 }
 
 class CartItemRemovedEvent extends CartEvent {
   MenuItem menuItem;
   bool fromCart = false;
-  CartItemRemovedEvent(this.menuItem, {this.fromCart = false});
+  Function callback;
+  CartItemRemovedEvent(this.menuItem, {this.fromCart = false, this.callback});
 }
 
 class CartItemUpdatedEvent extends CartEvent {}

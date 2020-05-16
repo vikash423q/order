@@ -6,67 +6,59 @@ class Address {
   String key;
   String houseNumber;
   String landmark;
-  String street;
   String area;
   String zip;
   String city = "Patna";
   String state = "Bihar";
   String country = "India";
+  bool isDefault = false;
 
   Address(
       {this.key,
       this.houseNumber,
       this.landmark,
-      this.street,
       this.area,
-      this.zip});
+      this.zip,
+      this.isDefault = false});
 
   Address.fromSnapshot(DocumentSnapshot snapshot) {
     this.key = snapshot.documentID;
     this.houseNumber = snapshot.data['house'];
     this.landmark = snapshot.data['landmark'];
-    this.street = snapshot.data['street'];
     this.area = snapshot.data['area'];
     this.zip = snapshot.data['zip'];
     this.city = snapshot.data['city'];
     this.state = snapshot.data['state'];
     this.country = snapshot.data['country'];
+    this.isDefault = snapshot.data['isDefault'] ?? false;
   }
 
   Address.fromJson(Map<String, dynamic> _map) {
     this.houseNumber = _map['houseNumber'];
     this.landmark = _map['landmark'];
-    this.street = _map['street'];
     this.area = _map['area'];
     this.zip = _map['zip'];
     this.city = _map['city'];
     this.state = _map['state'];
     this.country = _map['country'];
+    this.isDefault = _map['isDefault'] ?? false;
   }
 
-  toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'houseNumber': this.houseNumber,
       'landmark': this.landmark,
-      'street': this.street,
       'area': this.area,
       'zip': this.zip,
       'city': this.city,
       'state': this.state,
-      'country': this.country
+      'country': this.country,
+      'isDefault': this.isDefault
     };
   }
 
   toString() {
-    var _list = [
-      houseNumber,
-      landmark,
-      street,
-      area,
-      '\nPin Code: $zip',
-      city,
-      state
-    ];
+    var _list = [houseNumber, landmark, area, '\nPin Code: $zip', city, state];
     _list.removeWhere((element) => element == null);
     return _list.join(", ");
   }

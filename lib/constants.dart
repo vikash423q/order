@@ -1,14 +1,8 @@
 class Constants {
-  final String restaurantName = "Mom's Kitchen";
-  final String restaurantAddress = "Lakshmi Layout Road, JP Nagar";
-  final String restaurantContactNo = "+91 7686885294";
-
-  final String restaurantMailId = "myrestaurant124@gmail.com";
-  final String mailPassword = 'Restaurant1';
-  final List<String> mailRecipients = [
-    "vikash424q@gmail.com",
-    "myrestaurant124@gmail.com"
-  ];
+  final String restaurantName = "RUP & ROLL FOOD CORNER";
+  final String restaurantAddress =
+      "Simli Main Road\nNear Chhoti Mandir Patna City-8";
+  final String restaurantContactNo = "+91 9472039433";
 
   final String appShareLink = "http://vikashgaurav.com/download/orderapp";
   final String restrictedArea = "Patna Saheb";

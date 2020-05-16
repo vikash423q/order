@@ -24,6 +24,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   flutter_screenutil: ^1.1.0
+  http: ^0.12.1
   pin_code_fields: ^3.0.0
   firebase_core: ^0.4.0+9
   firebase_auth: ^0.14.0+5
@@ -50,9 +51,12 @@ dependencies:
 
 
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.7.3"
+
 
 
 # For information on the generic Dart part of this file, see the
@@ -119,3 +123,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/food-delivery.png"

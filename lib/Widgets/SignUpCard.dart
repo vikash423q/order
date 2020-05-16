@@ -22,6 +22,7 @@ class _SignUpCardState extends State<SignUpCard> {
   bool _showPassword = false;
   bool _showConfirmPassword = false;
   UserBloc _userBloc = UserBloc();
+  bool inProgress = false;
 
   String _signUpName = '';
   String _signUpEmail = '';
@@ -55,13 +56,15 @@ class _SignUpCardState extends State<SignUpCard> {
                   existing: false,
                   phone: this._signUpPhone,
                 )));
-    print(credential);
     if (credential == null) {
       Scaffold.of(context).showSnackBar(
           SnackBar(content: Text('Phone verification failed. Try again.')));
       return;
     }
     try {
+      setState(() {
+        this.inProgress = true;
+      });
       bool isRegistered = await registerNewUser(context, this._signUpName,
           this._signUpEmail, this._signUpPhone, this._signUpPassword);
       if (isRegistered) {
@@ -78,12 +81,22 @@ class _SignUpCardState extends State<SignUpCard> {
         } else {
           Scaffold.of(context).showSnackBar(
               SnackBar(content: Text('Phone could not be linked. Try again.')));
+          setState(() {
+            this.inProgress = false;
+          });
         }
       } else {
         Scaffold.of(context).showSnackBar(
             SnackBar(content: Text('Registration failed. Try again.')));
+        setState(() {
+          this.inProgress = false;
+        });
       }
-    } on PlatformException catch (error) {} catch (e) {}
+    } on PlatformException catch (error) {} catch (e) {
+      setState(() {
+        this.inProgress = false;
+      });
+    }
   }
 
   void _handleSignUp(context) async {
@@ -290,7 +303,7 @@ class _SignUpCardState extends State<SignUpCard> {
         onTap: () => this._handleSignUp(context),
         splashColor: Colors.orange[800],
         progressColor: Colors.orange[700],
-        inProgress: false,
+        showProgress: this.inProgress,
         text: Text(
           "SIGNUP",
           style: TextStyle(

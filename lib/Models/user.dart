@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:order/Models/address.dart';
 
 class User {
   String uid;
@@ -6,6 +7,7 @@ class User {
   String email;
   String phone;
   bool phoneVerified;
+  List<Address> address = [];
 
   User(this.uid, [this.name, this.email, this.phone, this.phoneVerified]);
 
@@ -15,6 +17,9 @@ class User {
     this.email = snapshot.data['email'];
     this.phone = snapshot.data['phone'];
     this.phoneVerified = snapshot.data['phoneVerified'];
+    this.address = List<dynamic>.of(snapshot.data['address'] ?? [])
+        .map((e) => Address.fromJson(e))
+        .toList();
   }
 
   User.empty() {
@@ -23,6 +28,7 @@ class User {
     this.email = "";
     this.phone = "";
     this.phoneVerified = false;
+    this.address = [];
   }
 
   toJson() {
@@ -31,7 +37,8 @@ class User {
       "name": this.name,
       "email": this.email,
       "phone": this.phone,
-      "phoneVerified": this.phoneVerified
+      "phoneVerified": this.phoneVerified,
+      "address": this.address.map((e) => e.toJson()).toList()
     };
   }
 

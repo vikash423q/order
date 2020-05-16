@@ -210,7 +210,7 @@ class _LoginCardState extends State<LoginCard> {
         onTap: () => this._handleLogin(context),
         splashColor: Colors.orange[800],
         progressColor: Colors.orange[700],
-        inProgress: false,
+        showProgress: false,
         text: Text(
           "LOGIN",
           style: TextStyle(

@@ -3,40 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:order/Models/menu_item.dart';
 import 'package:order/Models/order.dart';
 import 'package:order/Models/user.dart';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server.dart';
 import 'package:intl/intl.dart';
 import 'package:order/constants.dart';
-
-Future<bool> delegateMail(User user, Order order) async {
-  String username = Constants().restaurantMailId;
-  String password = Constants().mailPassword;
-
-  final smtpServer = gmail(username, password);
-  // Use the SmtpServer class to configure an SMTP server:
-  // final smtpServer = SmtpServer('smtp.domain.com');
-  // See the named arguments of SmtpServer for further configuration
-  // options.
-
-  // Create our message.
-  final message = Message()
-    ..from = Address(username, 'Restaurant')
-    ..recipients.add(user.email)
-    ..ccRecipients.addAll(Constants().mailRecipients)
-    ..subject = '${user.name} placed an order'
-    ..text = 'Order received'
-    ..html = user.toHTML() + order.toHTML();
-
-  try {
-    final sendReport = await send(message, smtpServer);
-    print('Message sent: ' + sendReport.toString());
-  } on MailerException catch (e) {
-    print('Message not sent.');
-    for (var p in e.problems) {
-      print('Problem: ${p.code}: ${p.msg}');
-    }
-  }
-}
 
 Future<String> upload(String collectionName, Map<String, dynamic> doc) async {
   DocumentReference docRef =
@@ -65,11 +33,16 @@ Future<List<MenuItem>> verifyOrderWithServer(List<OrderItem> orderItems) async {
   }
 }
 
+bool isUserVerified(User user) {
+  return user.phoneVerified;
+}
+
 Future<List<Order>> fetchOrderWithLimit(String userId, int limit) async {
   try {
     var docs = await Firestore.instance
         .collection('orders')
         .where('userId', isEqualTo: userId)
+        .orderBy('createdOn', descending: true)
         .limit(limit)
         .getDocuments();
     var documents = docs.documents;

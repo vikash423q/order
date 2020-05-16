@@ -378,7 +378,7 @@ class _OrderReviewState extends State<OrderReview> {
                                     fontWeight: FontWeight.w500),
                               ),
                               Text(
-                                "₹${this._order.total}",
+                                "₹${this._order.bill.total}",
                                 style: TextStyle(
                                     color: Colors.black54,
                                     fontSize: ScreenUtil().setSp(24),
@@ -399,7 +399,62 @@ class _OrderReviewState extends State<OrderReview> {
                                     fontWeight: FontWeight.w400),
                               ),
                               Text(
-                                "₹${this._order.delivery}",
+                                "₹${this._order.bill.delivery}",
+                                style: TextStyle(
+                                    color: Colors.black54,
+                                    fontSize: ScreenUtil().setSp(24),
+                                    fontWeight: FontWeight.w400),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            children: List.generate(
+                                this._order.bill.discounts.length,
+                                (idx) => Column(
+                                      children: <Widget>[
+                                        SizedBox(
+                                            height:
+                                                ScreenUtil().setHeight(10.0)),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Text(
+                                              "${this._order.bill.discounts[idx]['name']} (${this._order.bill.discounts[idx]['rate']})",
+                                              style: TextStyle(
+                                                  color: Colors.green[400],
+                                                  fontFamily: "Poppins-Medium",
+                                                  fontSize:
+                                                      ScreenUtil().setSp(24),
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                            Text(
+                                              "- ${this._order.bill.discounts[idx]['value']}",
+                                              style: TextStyle(
+                                                  color: Colors.green[400],
+                                                  fontSize:
+                                                      ScreenUtil().setSp(24),
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    )),
+                          ),
+                          SizedBox(height: ScreenUtil().setHeight(10.0)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Text(
+                                "Tax and Charges",
+                                style: TextStyle(
+                                    color: Colors.black54,
+                                    fontFamily: "Poppins-Medium",
+                                    fontSize: ScreenUtil().setSp(24),
+                                    fontWeight: FontWeight.w400),
+                              ),
+                              Text(
+                                "₹${this._order.bill.tax}",
                                 style: TextStyle(
                                     color: Colors.black54,
                                     fontSize: ScreenUtil().setSp(24),
@@ -408,44 +463,24 @@ class _OrderReviewState extends State<OrderReview> {
                             ],
                           ),
                           SizedBox(height: ScreenUtil().setHeight(10.0)),
+                          Divider(),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
                               Text(
-                                "Discount",
+                                "Paid",
                                 style: TextStyle(
                                     color: Colors.black54,
                                     fontFamily: "Poppins-Medium",
-                                    fontSize: ScreenUtil().setSp(24),
-                                    fontWeight: FontWeight.w400),
+                                    fontSize: ScreenUtil().setSp(26),
+                                    fontWeight: FontWeight.w600),
                               ),
                               Text(
-                                "₹${this._order.orderItems.fold(0, (val, el) => val + el.discount)}",
+                                "₹${this._order.bill.toPay}",
                                 style: TextStyle(
                                     color: Colors.black54,
-                                    fontSize: ScreenUtil().setSp(24),
-                                    fontWeight: FontWeight.w400),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: ScreenUtil().setHeight(10.0)),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Text(
-                                "Tax and Charges(18%)",
-                                style: TextStyle(
-                                    color: Colors.black54,
-                                    fontFamily: "Poppins-Medium",
-                                    fontSize: ScreenUtil().setSp(24),
-                                    fontWeight: FontWeight.w400),
-                              ),
-                              Text(
-                                "₹${this._order.tax}",
-                                style: TextStyle(
-                                    color: Colors.black54,
-                                    fontSize: ScreenUtil().setSp(24),
-                                    fontWeight: FontWeight.w400),
+                                    fontSize: ScreenUtil().setSp(26),
+                                    fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),

@@ -3,8 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<bool> put_uid(String uid) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  bool didUpdate = await prefs.setString('uid', uid);
-  return didUpdate;
+  return await prefs.setString('uid', uid);
 }
 
 Future<String> read_uid() async {
@@ -18,6 +17,7 @@ Future<bool> putUser(User user) async {
   await prefs.setString('name', user.name);
   await prefs.setString('email', user.email);
   await prefs.setString('phone', user.phone);
+  await prefs.setBool('phoneVerified', user.phoneVerified);
   return true;
 }
 
@@ -27,7 +27,8 @@ Future<User> readUser() async {
   String name = prefs.getString('name');
   String email = prefs.getString('email');
   String phone = prefs.getString('phone');
-  return User(uid, name, email, phone);
+  bool phoneVerified = prefs.getBool('phoneVerified');
+  return User(uid, name, email, phone, phoneVerified);
 }
 
 Future<bool> removeUser() async {
@@ -36,5 +37,6 @@ Future<bool> removeUser() async {
   await prefs.remove('name');
   await prefs.remove('email');
   await prefs.remove('phone');
+  await prefs.remove('phoneVerified');
   return true;
 }

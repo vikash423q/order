@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:order/Models/menu_item.dart';
+import 'package:order/Services/orderService.dart';
 
 class MenuBloc {
   final List<MenuItem> _menuItems = List<MenuItem>();
@@ -30,9 +31,13 @@ class MenuBloc {
       print('MenuRefresh Called');
 
       try {
-        Firestore.instance.collection('menu').getDocuments().then((snapshots) {
-          snapshots.documents.forEach(
-              (element) => this._menuItems.add(MenuItem.fromSnapshot(element)));
+        // Firestore.instance.collection('menu').getDocuments().then((snapshots) {
+        //   snapshots.documents.forEach(
+        //       (element) => this._menuItems.add(MenuItem.fromSnapshot(element)));
+        // this.putMenu.add(this._menuItems);
+        // });
+        getMenuList().then((items) {
+          this._menuItems.addAll(items);
           this.putMenu.add(this._menuItems);
         });
       } on PlatformException catch (pe) {} on Exception catch (error) {
