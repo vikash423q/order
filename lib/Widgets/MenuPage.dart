@@ -108,7 +108,7 @@ class _MenuPageState extends State<MenuPage> {
         this._onlyVeg = val;
         if (val) {
           this._cartBloc.cartEventSink.add(CartNonVegItemReset());
-          this._menuBloc.menuEventSink.add(MenuNonVegItemResetEvent());
+          // this._menuBloc.menuEventSink.add(MenuNonVegItemResetEvent());
           this._menuBloc.menuEventSink.add(MenuOnlyVegItemEvent());
         } else {
           this._menuBloc.menuEventSink.add(MenuAllItemEvent());

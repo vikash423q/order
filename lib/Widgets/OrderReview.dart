@@ -330,15 +330,19 @@ class _OrderReviewState extends State<OrderReview> {
                                 ),
                                 Column(
                                   children: <Widget>[
-                                    Text(
-                                      '₹${this._order.orderItems[index].actualPrice * this._order.orderItems[index].quantity}',
-                                      style: TextStyle(
-                                          decoration:
-                                              TextDecoration.lineThrough,
-                                          color: Colors.black54,
-                                          fontSize: ScreenUtil().setSp(22),
-                                          fontWeight: FontWeight.w400),
-                                    ),
+                                    this._order.orderItems[index].actualPrice >
+                                            this._order.orderItems[index].price
+                                        ? Text(
+                                            '₹${this._order.orderItems[index].actualPrice * this._order.orderItems[index].quantity}',
+                                            style: TextStyle(
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                                color: Colors.black54,
+                                                fontSize:
+                                                    ScreenUtil().setSp(22),
+                                                fontWeight: FontWeight.w400),
+                                          )
+                                        : Container(),
                                     Text(
                                       '₹${this._order.orderItems[index].cost}',
                                       style: TextStyle(

@@ -60,6 +60,10 @@ class MenuBloc {
       }
       this.putMenu.add(this._menuItems);
     } else if (event is MenuOnlyVegItemEvent) {
+      this
+          ._menuItems
+          .where((element) => element.nonVeg)
+          .forEach((element) => element.numOfItem = 0);
       var filtered =
           this._menuItems.where((element) => !element.nonVeg).toList();
       this.putMenu.add(filtered);

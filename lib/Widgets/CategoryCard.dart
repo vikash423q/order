@@ -30,10 +30,16 @@ class _CategoryState extends State<Category> {
   @override
   void initState() {
     this._categoryName = widget.categoryName;
-    this._menuItems = widget.menuitems;
     this._updateCart = widget.updateCart;
+    this._menuItems = widget.menuitems;
     this._removeFromCart = widget.removeFromCart;
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(Category oldWidget) {
+    this._menuItems = widget.menuitems;
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -56,6 +62,7 @@ class _CategoryState extends State<Category> {
         children: List.generate(
           this._menuItems.length,
           (index) => FlatDish(
+            key: Key(this._menuItems[index].name),
             menuItem: this._menuItems[index],
             updateCart: this._updateCart,
             removeFromCart: this._removeFromCart,

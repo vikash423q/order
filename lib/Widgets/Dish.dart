@@ -151,7 +151,7 @@ class _DishState extends State<Dish> {
                               fontSize: ScreenUtil().setSp(24),
                               fontWeight: FontWeight.w400),
                         ),
-                        this._menuItem.actualPrice != null
+                        this._menuItem.actualPrice > this._menuItem.offeredPrice
                             ? Text(
                                 "₹${(this._menuItem.actualPrice)}",
                                 style: TextStyle(

@@ -73,7 +73,7 @@ class _FlatDishState extends State<FlatDish> {
                 ),
                 Row(
                   children: <Widget>[
-                    this._menuItem.offeredPrice != null
+                    this._menuItem.actualPrice > this._menuItem.offeredPrice
                         ? Text(
                             "₹${this._menuItem.actualPrice}",
                             style: TextStyle(

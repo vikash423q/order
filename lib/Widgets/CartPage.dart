@@ -326,14 +326,13 @@ class _CartPageState extends State<CartPage> {
                             height: ScreenUtil().setWidth(60.0),
                             child: Center(
                               child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
-                                  this._cartBloc.cartItems[index].actualPrice ==
-                                              null ||
+                                  this._cartBloc.cartItems[index].actualPrice <=
                                           this
-                                                  ._cartBloc
-                                                  .cartItems[index]
-                                                  .numOfItem ==
-                                              0
+                                              ._cartBloc
+                                              .cartItems[index]
+                                              .offeredPrice
                                       ? SizedBox(height: 0.0)
                                       : Text(
                                           '₹${(this._cartBloc.cartItems[index].actualPrice * this._cartBloc.cartItems[index].numOfItem)}',

@@ -57,7 +57,8 @@ class MenuItem {
     this.name = json['name'];
     this.cuisine = json['cuisine'];
     this.category = List<String>.from(json['category']);
-    this.actualPrice = json['actualPrice'].toInt();
+    this.actualPrice =
+        json['actualPrice'] != null ? json['actualPrice'].toInt() : 0;
     this.offeredPrice = json['offeredPrice'].toInt();
     this.imageUrl = json['imageUrl'];
     this.available = json['available'];
